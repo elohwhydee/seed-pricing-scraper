@@ -13,7 +13,7 @@ class SeedSavers(BaseSite):
     ABBREVIATION = 'ss'
 
     ROOT_URL = 'http://www.seedsavers.org'
-    SEARCH_URL = ROOT_URL + '/onlinestore/?search={}'
+    SEARCH_URL = ROOT_URL + '/?search={}'
     NO_RESULT_TEXT = 'No items found.'
 
     def get_and_set_product_information(self):
