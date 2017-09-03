@@ -34,7 +34,7 @@ class Territorial(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'child-sku.*?(.*?)</>')
+        return self._get_match_from_product_page(r'child-sku iefix">(.*?)<\/li>')
 
     def _parse_organic_status_from_product_page(self):
         '''Parse the Product's Organic Status from the Product Page.
@@ -52,7 +52,7 @@ class Territorial(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'child-price.*?(.*?)</>')
+        return self._get_match_from_product_page(r'child-price iefix">\s*(.*?)\s*<\/li>')
 
     def _parse_weight_from_product_page(self):
         '''Parse the Product's Weight from the Product Page.
@@ -61,4 +61,4 @@ class Territorial(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'child-desc.*?(.*?)</>')
+        return self._get_match_from_product_page(r'child-desc iefix">\s*(.*?)\s*<\/li>')
