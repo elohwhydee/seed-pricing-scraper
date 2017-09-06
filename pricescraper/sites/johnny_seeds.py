@@ -11,11 +11,13 @@ class JohnnySeeds(BaseSite):
     ABBREVIATION = 'js'
 
     ROOT_URL = 'http://www.johnnyseeds.com'
-    SEARCH_URL = ROOT_URL + '/search.aspx?searchterm={}'
+    SEARCH_URL = ROOT_URL + '/search/?q={}'
     NO_RESULT_TEXT = 'Sorry — we did not find any items matching your search.'
+    SEARCH_REDIRECTED_TEXT = 'committed to your success, every step of the way.'
 
     def _get_results_from_search_page(self, search_page_html):
         '''Return tuples of names & URLs of search results.'''
+        
         matches = re.findall(
             r'<div class="container"><a href=".*?com(.*?)"class="productAnchor"\s*><span class="nameCAT">(.*?)</span><span.*?extendednameCAT">(.*?)<',
             search_page_html)
@@ -42,7 +44,7 @@ class JohnnySeeds(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'<p id="SKUField".*?>(.*?)</p>')
+            r'data-masterid="(.*?)"')
 
     def _parse_organic_status_from_product_page(self):
         '''Parse the Product's Organic Status from the Product Page HTM
@@ -62,7 +64,7 @@ class JohnnySeeds(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'variantprice">\s*(.*?)</span')
+            r'c-attribute-table__val">(.*?)<\/span>')
 
     def _parse_weight_from_product_page(self):
         '''Parse the Product's Weight from the Product Page HTM
