@@ -16,7 +16,7 @@ class Fruition(BaseSite):
     def _get_results_from_search_page(self, search_page_html):
         '''Return tuples of names & URLs of search results.'''
         return re.findall(
-            r'href=".*?com(.*?)" class="productname.*?>\s*.*?itemprop=\'name\'>\s*(.*?)\s*<',
+            r'href=".*?com(.*?)" class="v-product__title.*?>\s*(.*?)\s*<\/a>',
             search_page_html)
 
     def _parse_name_from_product_page(self):
@@ -26,7 +26,7 @@ class Fruition(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'<title>(.*?)</title>')
+        return self._get_match_from_product_page(r'<span itemprop="name">(.*?)<\/span>')
 
     def _parse_number_from_product_page(self):
         '''Parse the Product's Number from the Product Page.
