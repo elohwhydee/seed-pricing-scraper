@@ -9,15 +9,15 @@ class HighMowing(BaseSite):
     '''This class scrapes Product data from HighMowingSeeds.com'''
     ABBREVIATION = 'hm'
 
-    ROOT_URL = 'http://www.highmowingseeds.com'
-    SEARCH_URL = ROOT_URL + '/_search.php?q={}'
+    ROOT_URL = 'https://www.highmowingseeds.com'
+    SEARCH_URL = ROOT_URL + '/catalogsearch/result/?q={}'
     NO_RESULT_TEXT = '0 Results found for'
     INCLUDE_CATEGORY_IN_SEARCH = True
 
     def _get_results_from_search_page(self, search_page_html):
         '''Return tuples of names & URLs of search results.'''
         return re.findall(
-            r'<a.*?href="(.*?)">\s*<font class="ProductTitle">\s*(.*?)\s*</font>',
+            r'product-item-link" href=".*?com(.*?)">(.*?)<\/a>',
             search_page_html)
 
     def _parse_name_from_product_page(self):
@@ -28,7 +28,7 @@ class HighMowing(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'<td class="prod_desc">\s*<span><span.*?bold.*?>(.*?)</span>')
+            r'itemprop="name">(.*?)<\/span>')
 
     def _parse_number_from_product_page(self):
         '''Parse the Product's Number from the Product Page.
@@ -38,7 +38,7 @@ class HighMowing(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'<tr class="chart_dark">\s*<td>(.*?)</td>')
+            r'itemprop="sku">(.*?)<\/div>')
 
     def _parse_organic_status_from_product_page(self):
         '''Parse the Product's Organic Status from the Product Page.
@@ -57,7 +57,7 @@ class HighMowing(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'class="chart_dark">\s*(?:<td>.*?</td>\s*){3}<td>\s*(.*?)\s*</td>')
+            r'class="price">(.*?)<\/span>')
 
     def _parse_weight_from_product_page(self):
         '''Parse the Product's Weight from the Product Page.
@@ -67,4 +67,4 @@ class HighMowing(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'class="chart_dark">\s*<td>.*?</td>\s*<td>\s*(.*?)\s*</td>')
+            r'class=""label":"([0-9].*?)"')
