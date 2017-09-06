@@ -5,7 +5,7 @@ import json
 import urllib.request
 
 from .base import BaseSite
-from util import get_page_html
+from util import remove_punctuation, get_page_html
 
 
 class SeedSavers(BaseSite):
@@ -13,25 +13,34 @@ class SeedSavers(BaseSite):
     ABBREVIATION = 'ss'
 
     ROOT_URL = 'http://www.seedsavers.org'
-    SEARCH_URL = ROOT_URL + '/?search={}'
+    SEARCH_URL = ROOT_URL + '/search?keywords={}'
     NO_RESULT_TEXT = 'No items found.'
 
-    def get_and_set_product_information(self):
-        '''Retrieve and set the Product's information from the website
-
-        SeedSavers uses AJAX & Javascript redirects in an attempt to thwart
-        bots, so we call ``_get_real_url()`` to generate the real page's URL.
-        Incorrect pages do not contain CSS classes ending in ``_cell`` so we
-        check for that text to see if we need to find the true page.
+    def _find_product_page(self, use_organic=True):
+        '''Seed Savers Exchange doesn't like extra search terms,
+            so for example, searching "Green Zebra Tomato" will get no results,
+            even though they have a tomato named "Green Zebra". This function
+            successivly strips out search terms to see if we get a match that way.
 
         '''
-        found_page_text = '_cell'
 
-        self.page_html = self._find_product_page()
-        if (self.page_html is not None and
-                found_page_text not in self.page_html):
-            self.page_html = get_page_html(self._get_real_url())
-        self._parse_and_set_attributes()
+        search_terms_list = remove_punctuation(self.sese_name).split()
+        while len(search_terms_list) > 0:
+            search_terms = ' '.join(search_terms_list)
+            search_page = self._search_site(search_terms)
+            match = self._get_best_match_or_none(search_page)
+            if match:
+                return match
+
+            if match is None and self.sese_organic:
+                search_page = self._search_site(search_terms + "organic")
+                organic_match = self._get_best_match_or_none(search_page)
+                if organic_match:
+                    return organic_match
+
+            search_terms_list = search_terms_list[:-1]
+
+        return None
 
     def _get_real_url(self):
         '''Generate the true URL of the product by simulating an AJAX request.
@@ -59,7 +68,7 @@ class SeedSavers(BaseSite):
 
     def _get_results_from_search_page(self, search_page_html):
         '''Return tuples of names & URLs of search results.'''
-        return re.findall(r'<h6><a href="(.*?)">(.*?)</a>', search_page_html)
+        return re.findall(r'class="facets-item-cell-grid-title" href="(.*?)">.*?itemprop="name">(.*?)<', search_page_html)
 
     def _parse_name_from_product_page(self):
         '''Parse the Product's Name from the Product Page.
@@ -68,7 +77,7 @@ class SeedSavers(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'<title>(.*?)\s?\|')
+        return self._get_match_from_product_page(r'itemprop="name">(.*?)<\/h1>')
 
     def _parse_number_from_product_page(self):
         '''Parse the Product's Number from the Product Page.
@@ -77,7 +86,7 @@ class SeedSavers(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'Catalog <span>(.*?)\s?</')
+        return self._get_match_from_product_page(r'itemprop="sku">(.*?)<\/span>')
 
     def _parse_organic_status_from_product_page(self):
         '''Parse the Product's Organic Status from the Product Page.
@@ -86,7 +95,7 @@ class SeedSavers(BaseSite):
         :rtype: :obj:`bool`
 
         '''
-        return 'organic' in self.name.lower()
+        return 'organic' in self._get_match_from_product_page(r'<title>(.*?)<\/title>')
 
     def _parse_price_from_product_page(self):
         '''Parse the Product's Price from the Product Page.
@@ -96,7 +105,7 @@ class SeedSavers(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'bl_price_cell">\s*(.*?)\s*<')
+            r'data-rate=".*?">(.*?)<\/span>')
 
     def _parse_weight_from_product_page(self):
         '''Parse the Product's Weight from the Product Page.
@@ -106,4 +115,4 @@ class SeedSavers(BaseSite):
 
         '''
         return self._get_match_from_product_page(
-            r'bl_description_cell">\s*(.*?)\s*<')
+            r'<span>Packet (.*?)<\/span>')
