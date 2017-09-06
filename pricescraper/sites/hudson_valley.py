@@ -53,7 +53,7 @@ class HudsonValley(BaseSite):
         :rtype: :obj:`str`
 
         '''
-        return self._get_match_from_product_page(r'span class="price">(.*?)<')
+        return self._get_match_from_product_page(r'(\$[0-9]*\.[0-9][0-9])')
 
     def _parse_weight_from_product_page(self):
         '''Parse the Product's Weight from the Product Page.
